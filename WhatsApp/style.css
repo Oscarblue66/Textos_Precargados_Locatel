@@ -1,0 +1,453 @@
+/* ==========================================================
+   PALETA DE COLORES (WhatsApp Dark Mode)
+   ========================================================== */
+:root {
+    --bg-color: #0a1014;       /* Fondo principal (WhatsApp Dark) */
+    --surface-color: #1a2a32;  /* Fondo de tarjeta */
+    --surface-hover: #233540;  /* Resaltado de fila */
+    
+    --primary-color: #00a884;  /* Verde WhatsApp principal */
+    --primary-hover: #06cf9c;  /* Verde más claro al pasar el mouse */
+    
+    --success-color: #25d366;  /* Verde éxito WhatsApp */
+    
+    --text-main: #e9edef;      /* Texto principal claro */
+    --text-muted: #8696a0;     /* Texto secundario */
+    
+    --border-color: #233540;   /* Bordes sutiles */
+    --ring-color: rgba(0, 168, 132, 0.5); /* Anillo de enfoque verde translúcido */
+    
+    --input-bg: #0c181e;       /* Fondo del buscador */
+}
+
+/* ==========================================================
+   ESTILOS GENERALES
+   ========================================================== */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding: 30px 20px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    max-width: 1280px;
+    margin: 0 auto;
+    background: var(--surface-color);
+    padding: 32px;
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 60px); /* Ajuste para ocupar toda la pantalla considerando el padding del body */
+}
+
+/* ==========================================================
+   CABECERA Y BUSCADOR
+   ========================================================== */
+header {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.header-titles h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.8px;
+}
+
+.header-titles .subtitle {
+    margin: 4px 0 0 0;
+    font-size: 15px;
+    color: var(--primary-color);
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Estilo para el botón de acceso a WhatsApp en el Index */
+.whatsapp-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    background-color: #25d366; /* Verde WhatsApp */
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: none;
+    width: fit-content;
+}
+
+.whatsapp-nav-btn:hover {
+    background-color: #128c7e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+/* Asegura que el contenedor sea el punto de referencia */
+.search-box {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Estilo para que el botón flote a la derecha dentro del input */
+.clear-btn {
+    position: absolute;
+    right: 14px; /* Espacio desde el borde derecho */
+    background: var(--border-color);
+    color: var(--text-muted);
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: none; /* Se muestra vía JS solo cuando hay texto */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+.clear-btn:hover {
+    background-color: #ef4444; /* Rojo al pasar el mouse */
+    color: white;
+}
+
+/* Ajuste al input para que el texto no se encime con la X */
+.search-box input {
+    padding-right: 45px; /* Espacio extra a la derecha para la X */
+}
+
+.search-box {
+    position: relative;
+    width: 100%;
+}
+
+.search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 14px 14px 14px 44px;
+    font-size: 16px;
+    font-family: inherit;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+    background-color: var(--input-bg);
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background-color: var(--input-bg);
+    box-shadow: 0 0 0 4px var(--ring-color);
+}
+
+.search-box input::placeholder {
+    color: #54656f;
+}
+
+/* ==========================================================
+   ESTILOS DE LAS PESTAÑAS (TABS)
+   ========================================================== */
+.tabs-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    
+    /* Scroll suave en móviles */
+    -webkit-overflow-scrolling: touch;
+}
+
+.tab-btn {
+    background-color: var(--surface-color);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background-color: var(--surface-hover);
+    color: var(--text-main);
+}
+
+/* Estado activo de la pestaña */
+.tab-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 168, 132, 0.2);
+}
+
+/* Scrollbar específico para la barra de pestañas */
+.tabs-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.tabs-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tabs-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+.tabs-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
+}
+
+/* ==========================================================
+   CONTENEDOR Y DISEÑO DE LA TABLA
+   ========================================================== */
+.table-container {
+    overflow-y: auto;
+    overflow-x: auto;
+    flex-grow: 1; /* Permite que la tabla llene el espacio sobrante */
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 800px; /* Evita que la tabla colapse demasiado en pantallas pequeñas */
+}
+
+thead th {
+    background-color: #0c181e;
+    color: var(--primary-color);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 16px 20px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+tbody td {
+    height: 70px; /* Ajusta este valor según necesites */
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    font-size: 14px;
+    color: #d1d7db;
+}
+
+/* Efecto cebra y hover */
+tbody tr:nth-child(even) {
+    background-color: #1e2d37;
+}
+
+tbody tr:hover {
+    background-color: var(--surface-hover);
+    transition: background-color 0.15s ease;
+}
+
+/* ==========================================================
+   CONFIGURACIÓN ESPECÍFICA DE COLUMNAS
+   ========================================================== */
+
+/* PROTECCIÓN: Evitamos que las columnas cortas se partan a la mitad */
+tbody td:nth-child(2), /* Subtema */
+tbody td:nth-child(3), /* Categoría */
+tbody td:nth-child(5), /* Hashtag */
+tbody td:nth-child(6) { /* Botón */
+    white-space: nowrap;
+}
+
+/* TEXTO DE RESPUESTA: Toma el espacio restante y se limita a 3 líneas */
+.text-col {
+    width: 100%;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    
+    /* Magia para limitar a 3 líneas y truncar con puntos suspensivos */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* SUBTEMA: Ancho fijo y límite de 3 líneas */
+tbody td:nth-child(2) {
+    width: 170px; 
+    min-width: 150px; 
+    white-space: normal; 
+    word-wrap: break-word;
+    
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Columna de hashtags (Estilo código/etiqueta) */
+tbody td:nth-child(5) {
+    font-weight: 600;
+    color: var(--primary-hover);
+    font-size: 13px;
+    font-family: 'ui-monospace', 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+    text-align: center;
+}
+
+.center-col {
+    text-align: center;
+}
+
+/* ==========================================================
+   BOTONES Y ANIMACIONES
+   ========================================================== */
+button.copy-btn {
+    background-color: transparent;
+    color: var(--primary-hover);
+    border: 1.5px solid var(--primary-hover);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 95px;
+}
+
+button.copy-btn:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 168, 132, 0.3);
+}
+
+button.copy-btn:active {
+    transform: translateY(0);
+}
+
+button.copy-btn.copied {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: white;
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+}
+
+/* Loader */
+.loading {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 50px !important;
+    font-size: 15px;
+}
+
+.loader {
+    border: 3px solid var(--border-color);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ==========================================================
+   SCROLLBAR (Estética WhatsApp Dark)
+   ========================================================== */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: var(--surface-color);
+    border-radius: 8px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 8px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-hover);
+}
+
+/* ==========================================================
+   RESPONSIVE DESIGN (Efecto Zoom Dinámico)
+   ========================================================== */
+@media (max-width: 1000px) {
+    .table-container {
+        zoom: 0.9;
+    }
+}
+
+@media (max-width: 850px) {
+    .table-container {
+        zoom: 0.8;
+    }
+    .container {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 650px) {
+    .table-container {
+        zoom: 0.65;
+    }
+}
+
+@media (max-width: 450px) {
+    .table-container {
+        zoom: 0.6;
+    }
+    .header-titles h1 {
+        font-size: 20px;
+    }
+}

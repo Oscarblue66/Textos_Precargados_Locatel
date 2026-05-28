@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Información | Panel de Operaciones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+
+            <div class="header-titles">
+                <h1>Gestor de Respuestas</h1>
+                <p class="subtitle">LOCATEL</p>
+                <a href="WhatsApp/WhatsApp.html" class="whatsapp-nav-btn">WhatsApp</a>
+            </div>
+            
+            <!-- CONTENEDOR DE PESTAÑAS -->
+            <div class="tabs-container" id="tabsContainer">
+                <!-- Los botones se generarán con JavaScript -->
+            </div>
+
+            <div class="search-box">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" placeholder="Buscar en la pestaña actual...">
+                <!-- botón de limpiar -->
+                <button id="clearSearch" class="clear-btn" title="Limpiar búsqueda">&times;</button>
+            </div>
+        </header>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Tema</th>
+                        <th>Subtema</th>
+                        <th>Categoría</th>
+                        <th>Texto de Respuesta</th>
+                        <th>Hashtag</th>
+                        <th class="center-col">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="6" class="loading">
+                            <div class="loader"></div>
+                            Selecciona una pestaña para cargar la base de datos...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
