@@ -65,9 +65,9 @@ async function cambiarPestana(id, gid) {
     tableBody.innerHTML = `<tr><td colspan="6" class="loading"><div class="loader"></div>Cargando datos de "${id}"...</td></tr>`;
 
     try {
-        try {
         const query = encodeURIComponent("SELECT A, B, C, D, E");
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${gid}`;
+        // ¡EL TRUCO ESTÁ AQUÍ! Añadimos &range=A:E para forzar la lectura de toda la columna
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&range=A:E&tq=${query}&gid=${gid}`;
         
         const respuesta = await fetch(URL);
         const texto = await respuesta.text();
@@ -75,8 +75,11 @@ async function cambiarPestana(id, gid) {
         const jsonString = texto.substring(47, texto.length - 2);
         const json = JSON.parse(jsonString);
 
+        console.log(`=== DATOS RECUPERADOS: ${id} ===`, json.table.rows.length, "filas");
+
         let datosProcesados = json.table.rows.map(row => {
-            let textoBruto = (row.c[3] && row.c[3].v !== null) ? String(row.c[3].v) : "";
+            // Protegemos la lectura por si llegan celdas vacías (null)
+            let textoBruto = (row && row.c && row.c[3] && row.c[3].v !== null) ? String(row.c[3].v) : "";
             let textoLimpio = textoBruto;
             
             if (textoLimpio.startsWith('"') && textoLimpio.endsWith('"')) {
@@ -85,36 +88,26 @@ async function cambiarPestana(id, gid) {
             textoLimpio = textoLimpio.replace(/""/g, '"');
 
             return {
-                tema: (row.c[0] && row.c[0].v !== null) ? String(row.c[0].v) : "",
-                subtema: (row.c[1] && row.c[1].v !== null) ? String(row.c[1].v) : "",
-                categoria: (row.c[2] && row.c[2].v !== null) ? String(row.c[2].v) : "",
+                tema: (row && row.c && row.c[0] && row.c[0].v !== null) ? String(row.c[0].v) : "",
+                subtema: (row && row.c && row.c[1] && row.c[1].v !== null) ? String(row.c[1].v) : "",
+                categoria: (row && row.c && row.c[2] && row.c[2].v !== null) ? String(row.c[2].v) : "",
                 texto: textoLimpio,
-                hashtag: (row.c[4] && row.c[4].v !== null) ? String(row.c[4].v) : ""
+                hashtag: (row && row.c && row.c[4] && row.c[4].v !== null) ? String(row.c[4].v) : ""
             };
         });
 
-        // NUEVA LIMPIEZA: Más segura y no borra tus datos por accidente
+        // Limpieza: quitamos encabezados y las cientos de filas vacías que Google nos mandará ahora
         datosProcesados = datosProcesados.filter(item => {
             const temaFiltro = String(item.tema).trim().toLowerCase();
             
-            // 1. Ocultamos los encabezados
-            if (temaFiltro === "tema" || temaFiltro.startsWith("tabla_")) {
-                return false;
-            }
-            
-            // 2. Ocultamos filas que estén COMPLETAMENTE en blanco (todas las celdas vacías)
-            if (item.tema === "" && item.subtema === "" && item.categoria === "" && item.texto === "") {
-                return false;
-            }
+            if (temaFiltro === "tema" || temaFiltro.startsWith("tabla_")) return false;
+            if (item.tema === "" && item.subtema === "" && item.texto === "") return false;
 
-            // Si pasa las pruebas, la mostramos
             return true;
         });
 
-        // Guardar en memoria
         cacheDatos[id] = datosProcesados;
         
-        // Renderizar
         if(tabActiva === id) {
             renderizarTabla(datosProcesados);
         }
