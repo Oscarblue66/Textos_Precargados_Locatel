@@ -65,7 +65,10 @@ async function cambiarPestana(id, gid) {
     tableBody.innerHTML = `<tr><td colspan="6" class="loading"><div class="loader"></div>Cargando datos de "${id}"...</td></tr>`;
 
     try {
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq&gid=${gid}`;
+        // 1. Forzamos la consulta para traer solo las columnas que nos importan y saltar la Fila 1 ("Tabla_3")
+        const query = encodeURIComponent("SELECT A, B, C, D, E OFFSET 1");
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${gid}`;
+        
         const respuesta = await fetch(URL);
         const texto = await respuesta.text();
         
@@ -73,23 +76,27 @@ async function cambiarPestana(id, gid) {
         const json = JSON.parse(jsonString);
 
         let datosProcesados = json.table.rows.map(row => {
-            let textoLimpio = row.c[3] ? row.c[3].v : "";
+            // 2. Verificamos que exista y lo forzamos a String ANTES de limpiarlo
+            let textoBruto = (row.c[3] && row.c[3].v !== null) ? String(row.c[3].v) : "";
+            let textoLimpio = textoBruto;
+            
             if (textoLimpio.startsWith('"') && textoLimpio.endsWith('"')) {
                 textoLimpio = textoLimpio.substring(1, textoLimpio.length - 1);
             }
             textoLimpio = textoLimpio.replace(/""/g, '"');
 
             return {
-                tema: row.c[0] ? row.c[0].v : "",
-                subtema: row.c[1] ? row.c[1].v : "",
-                categoria: row.c[2] ? row.c[2].v : "",
+                // Hacemos lo mismo con el resto de variables para evitar crasheos
+                tema: (row.c[0] && row.c[0].v !== null) ? String(row.c[0].v) : "",
+                subtema: (row.c[1] && row.c[1].v !== null) ? String(row.c[1].v) : "",
+                categoria: (row.c[2] && row.c[2].v !== null) ? String(row.c[2].v) : "",
                 texto: textoLimpio,
-                hashtag: row.c[4] ? row.c[4].v : ""
+                hashtag: (row.c[4] && row.c[4].v !== null) ? String(row.c[4].v) : ""
             };
         });
 
-        // Limpiar cabeceras si la primera fila dice "Tema"
-        if (datosProcesados.length > 0 && String(datosProcesados[0].tema).toLowerCase() === "tema") {
+        // Limpiar cabeceras si la primera fila procesada (que era la fila 2 de Excel) dice "Tema"
+        if (datosProcesados.length > 0 && String(datosProcesados[0].tema).trim().toLowerCase() === "tema") {
             datosProcesados.shift(); 
         }
 
@@ -103,7 +110,7 @@ async function cambiarPestana(id, gid) {
 
     } catch (error) {
         console.error(`Error al cargar la pestaña ${id}:`, error);
-        tableBody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Error al cargar la pestaña. Verifica el GID.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Error al cargar la pestaña. Abre la consola (F12) para más detalles.</td></tr>`;
     }
 }
 
