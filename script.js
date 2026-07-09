@@ -26,7 +26,7 @@ let tabActiva = ''; // Guarda el ID de la pestaña actual
 const tableBody = document.getElementById('tableBody');
 const searchInput = document.getElementById('searchInput');
 const tabsContainer = document.getElementById('tabsContainer');
-//  botón Limpiar
+// botón Limpiar
 const clearBtn = document.getElementById('clearSearch');
 
 // 2. INICIALIZAR PESTAÑAS
