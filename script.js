@@ -65,7 +65,7 @@ async function cambiarPestana(id, gid) {
     tableBody.innerHTML = `<tr><td colspan="6" class="loading"><div class="loader"></div>Cargando datos de "${id}"...</td></tr>`;
 
     try {
-        // 1. Quitamos el OFFSET 1 para que traiga TODO, desde la fila 1
+        try {
         const query = encodeURIComponent("SELECT A, B, C, D, E");
         const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${gid}`;
         
@@ -74,9 +74,6 @@ async function cambiarPestana(id, gid) {
         
         const jsonString = texto.substring(47, texto.length - 2);
         const json = JSON.parse(jsonString);
-
-        // Imprimimos en consola lo que llega realmente
-        console.log(`=== DATOS DE LA PESTAÑA: ${id} ===`, json);
 
         let datosProcesados = json.table.rows.map(row => {
             let textoBruto = (row.c[3] && row.c[3].v !== null) ? String(row.c[3].v) : "";
@@ -96,16 +93,23 @@ async function cambiarPestana(id, gid) {
             };
         });
 
-        // 2. Limpieza inteligente: Quitamos filas basura del inicio hasta llegar a los datos reales
-        while (datosProcesados.length > 0) {
-            const primerTema = String(datosProcesados[0].tema).trim().toLowerCase();
-            // Si la primera fila está vacía, dice "tema" o "tabla_3", la eliminamos
-            if (primerTema === "tema" || primerTema === "tabla_3" || primerTema === "tabla_4" || primerTema === "") {
-                datosProcesados.shift(); 
-            } else {
-                break; // Ya llegamos a los datos buenos
+        // NUEVA LIMPIEZA: Más segura y no borra tus datos por accidente
+        datosProcesados = datosProcesados.filter(item => {
+            const temaFiltro = String(item.tema).trim().toLowerCase();
+            
+            // 1. Ocultamos los encabezados
+            if (temaFiltro === "tema" || temaFiltro.startsWith("tabla_")) {
+                return false;
             }
-        }
+            
+            // 2. Ocultamos filas que estén COMPLETAMENTE en blanco (todas las celdas vacías)
+            if (item.tema === "" && item.subtema === "" && item.categoria === "" && item.texto === "") {
+                return false;
+            }
+
+            // Si pasa las pruebas, la mostramos
+            return true;
+        });
 
         // Guardar en memoria
         cacheDatos[id] = datosProcesados;
