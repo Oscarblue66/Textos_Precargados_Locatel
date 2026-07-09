@@ -65,7 +65,6 @@ async function cambiarPestana(id, gid) {
     tableBody.innerHTML = `<tr><td colspan="6" class="loading"><div class="loader"></div>Cargando datos de "${id}"...</td></tr>`;
 
     try {
-        // 1. Forzamos la consulta para traer solo las columnas que nos importan y saltar la Fila 1 ("Tabla_3")
         const query = encodeURIComponent("SELECT A, B, C, D, E OFFSET 1");
         const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${gid}`;
         
@@ -75,8 +74,15 @@ async function cambiarPestana(id, gid) {
         const jsonString = texto.substring(47, texto.length - 2);
         const json = JSON.parse(jsonString);
 
+        // ¡ESTO ES LO NUEVO! Imprimirá en la consola lo que Google Sheets realmente está enviando
+        console.log(`=== REVISANDO PESTAÑA: ${id} (GID: ${gid}) ===`);
+        console.log("Datos crudos recibidos de Google:", json);
+
+        if (!json.table.rows || json.table.rows.length === 0) {
+            console.warn(`⚠️ Google Sheets dice que la pestaña ${id} no tiene filas con datos en las columnas A-E.`);
+        }
+
         let datosProcesados = json.table.rows.map(row => {
-            // 2. Verificamos que exista y lo forzamos a String ANTES de limpiarlo
             let textoBruto = (row.c[3] && row.c[3].v !== null) ? String(row.c[3].v) : "";
             let textoLimpio = textoBruto;
             
@@ -86,7 +92,6 @@ async function cambiarPestana(id, gid) {
             textoLimpio = textoLimpio.replace(/""/g, '"');
 
             return {
-                // Hacemos lo mismo con el resto de variables para evitar crasheos
                 tema: (row.c[0] && row.c[0].v !== null) ? String(row.c[0].v) : "",
                 subtema: (row.c[1] && row.c[1].v !== null) ? String(row.c[1].v) : "",
                 categoria: (row.c[2] && row.c[2].v !== null) ? String(row.c[2].v) : "",
@@ -95,15 +100,12 @@ async function cambiarPestana(id, gid) {
             };
         });
 
-        // Limpiar cabeceras si la primera fila procesada (que era la fila 2 de Excel) dice "Tema"
         if (datosProcesados.length > 0 && String(datosProcesados[0].tema).trim().toLowerCase() === "tema") {
             datosProcesados.shift(); 
         }
 
-        // Guardar en memoria
         cacheDatos[id] = datosProcesados;
         
-        // Renderizar si el usuario no ha cambiado de pestaña súper rápido mientras cargaba
         if(tabActiva === id) {
             renderizarTabla(datosProcesados);
         }
