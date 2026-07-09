@@ -64,10 +64,11 @@ async function cambiarPestana(id, gid) {
     // Si es la primera vez, mostramos "Cargando" y descargamos
     tableBody.innerHTML = `<tr><td colspan="6" class="loading"><div class="loader"></div>Cargando datos de "${id}"...</td></tr>`;
 
-    try {
+   try {
         const query = encodeURIComponent("SELECT A, B, C, D, E");
-        // ¡EL TRUCO ESTÁ AQUÍ! Añadimos &range=A:E para forzar la lectura de toda la columna
-        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&range=A:E&tq=${query}&gid=${gid}`;
+        // TRUCO ANTI-CACHÉ: Le agregamos la hora actual para obligar a Google a leer el archivo fresco
+        const tiempoReal = new Date().getTime(); 
+        const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&range=A1:E1000&tq=${query}&gid=${gid}&cb=${tiempoReal}`;
         
         const respuesta = await fetch(URL);
         const texto = await respuesta.text();
@@ -75,10 +76,9 @@ async function cambiarPestana(id, gid) {
         const jsonString = texto.substring(47, texto.length - 2);
         const json = JSON.parse(jsonString);
 
-        console.log(`=== DATOS RECUPERADOS: ${id} ===`, json.table.rows.length, "filas");
+        console.log(`=== DATOS FRESCOS DE: ${id} ===`, json.table.rows.length, "filas leídas");
 
         let datosProcesados = json.table.rows.map(row => {
-            // Protegemos la lectura por si llegan celdas vacías (null)
             let textoBruto = (row && row.c && row.c[3] && row.c[3].v !== null) ? String(row.c[3].v) : "";
             let textoLimpio = textoBruto;
             
@@ -96,7 +96,7 @@ async function cambiarPestana(id, gid) {
             };
         });
 
-        // Limpieza: quitamos encabezados y las cientos de filas vacías que Google nos mandará ahora
+        // Limpieza de encabezados y filas vacías
         datosProcesados = datosProcesados.filter(item => {
             const temaFiltro = String(item.tema).trim().toLowerCase();
             
