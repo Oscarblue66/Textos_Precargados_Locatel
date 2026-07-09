@@ -65,7 +65,8 @@ async function cambiarPestana(id, gid) {
     tableBody.innerHTML = `<tr><td colspan="6" class="loading"><div class="loader"></div>Cargando datos de "${id}"...</td></tr>`;
 
     try {
-        const query = encodeURIComponent("SELECT A, B, C, D, E OFFSET 1");
+        // 1. Quitamos el OFFSET 1 para que traiga TODO, desde la fila 1
+        const query = encodeURIComponent("SELECT A, B, C, D, E");
         const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&tq=${query}&gid=${gid}`;
         
         const respuesta = await fetch(URL);
@@ -74,13 +75,8 @@ async function cambiarPestana(id, gid) {
         const jsonString = texto.substring(47, texto.length - 2);
         const json = JSON.parse(jsonString);
 
-        // ¡ESTO ES LO NUEVO! Imprimirá en la consola lo que Google Sheets realmente está enviando
-        console.log(`=== REVISANDO PESTAÑA: ${id} (GID: ${gid}) ===`);
-        console.log("Datos crudos recibidos de Google:", json);
-
-        if (!json.table.rows || json.table.rows.length === 0) {
-            console.warn(`⚠️ Google Sheets dice que la pestaña ${id} no tiene filas con datos en las columnas A-E.`);
-        }
+        // Imprimimos en consola lo que llega realmente
+        console.log(`=== DATOS DE LA PESTAÑA: ${id} ===`, json);
 
         let datosProcesados = json.table.rows.map(row => {
             let textoBruto = (row.c[3] && row.c[3].v !== null) ? String(row.c[3].v) : "";
@@ -100,19 +96,28 @@ async function cambiarPestana(id, gid) {
             };
         });
 
-        if (datosProcesados.length > 0 && String(datosProcesados[0].tema).trim().toLowerCase() === "tema") {
-            datosProcesados.shift(); 
+        // 2. Limpieza inteligente: Quitamos filas basura del inicio hasta llegar a los datos reales
+        while (datosProcesados.length > 0) {
+            const primerTema = String(datosProcesados[0].tema).trim().toLowerCase();
+            // Si la primera fila está vacía, dice "tema" o "tabla_3", la eliminamos
+            if (primerTema === "tema" || primerTema === "tabla_3" || primerTema === "tabla_4" || primerTema === "") {
+                datosProcesados.shift(); 
+            } else {
+                break; // Ya llegamos a los datos buenos
+            }
         }
 
+        // Guardar en memoria
         cacheDatos[id] = datosProcesados;
         
+        // Renderizar
         if(tabActiva === id) {
             renderizarTabla(datosProcesados);
         }
 
     } catch (error) {
         console.error(`Error al cargar la pestaña ${id}:`, error);
-        tableBody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Error al cargar la pestaña. Abre la consola (F12) para más detalles.</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">Error al cargar la pestaña.</td></tr>`;
     }
 }
 
