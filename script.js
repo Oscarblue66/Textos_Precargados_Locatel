@@ -6,7 +6,7 @@ const SHEET_ID = '1x7iucwchPYusc81R09oP-87E4tii0JTP8Fyhkvz_GvQ';
 const PESTANAS = [
     { id: 'saludos', nombre: 'SALUDOS', gid: '0' },
     { id: 'f', nombre: 'F', gid: '2042615712' }, 
-    { id: 'llave', nombre: 'Llave', gid: '815191000' }, // CAMBIAR ESTE GID
+    { id: 'llave', nombre: 'Llave', gid: '288101088' }, // CAMBIAR ESTE GID
     { id: 'lytc', nombre: 'L y TC', gid: '815997596' }, // CAMBIAR ESTE GID
     { id: 'peinfr', nombre: 'P e Infr', gid: '706698375' }, // CAMBIAR ESTE GID
     { id: 'hnc', nombre: 'HNC', gid: '217925413' }, // CAMBIAR ESTE GID
