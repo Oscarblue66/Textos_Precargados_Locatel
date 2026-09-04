@@ -305,6 +305,18 @@ if (closeMenuBtn) {
     });
 }
 
+// NUEVO: Cerrar el menú al hacer clic fuera de él
+document.addEventListener('click', (e) => {
+    // Verificamos si el menú existe y está abierto
+    if (sideMenuDespedidas && sideMenuDespedidas.classList.contains('open')) {
+        // Comprobamos que el clic NO fue dentro del menú (sideMenuDespedidas)
+        // y que NO fue en el botón flotante (btnMenuDespedidas)
+        if (!sideMenuDespedidas.contains(e.target) && !btnMenuDespedidas.contains(e.target)) {
+            sideMenuDespedidas.classList.remove('open');
+        }
+    }
+});
+
 // 2. Función principal: Crear los botones y manejar el clic
 function renderHashtags(filtro = "") {
     hashtagButtonsContainer.innerHTML = "";
