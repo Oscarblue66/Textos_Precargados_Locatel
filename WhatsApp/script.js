@@ -237,5 +237,275 @@ clearBtn.addEventListener('click', () => {
     searchInput.focus();
 });
 
+// ==========================================================
+// 11. LÓGICA DEL MENÚ LATERAL Y CONTEO DE DESPEDIDAS
+// ==========================================================
+
+const API_CONTEO_URL = 'https://script.google.com/macros/s/AKfycbwQfBv4sOhNZm_sRFDeobKHiWDIECy9T_mqxR40ZbvsXmVAVUd0w2hx1IGUizHzx7oEnw/exec';
+const API_CONTEO_URL2 = 'https://script.google.com/macros/s/AKfycbw91erPVCK4AHyXZDxJrwnSXFaiVl5HPbq9MkjHAJ75snyIyAGeZY4JY2DCNq39CegBQg/exec';
+
+const btnMenuDespedidas = document.getElementById('btnMenuDespedidas');
+const sideMenuDespedidas = document.getElementById('sideMenuDespedidas');
+const closeMenuBtn = document.getElementById('closeMenuBtn');
+const searchHashtag = document.getElementById('searchHashtag');
+const hashtagButtonsContainer = document.getElementById('hashtagButtonsContainer');
+
+const textoActivo = `Por último, nos encantaría conocer su experiencia con nuestro servicio a través de una breve encuesta de satisfacción:  https://forms.gle/iXN2fQZvXikwM6HTA 📊📈\nGracias por utilizar los servicios de *0311Locatel, le atendió JOSE GRANADOS. Hasta luego. #LAPALABRADELBOTON`;
+
+const textoInactivo = `Debido a inactividad, el chat de *0311 LOCATEL finaliza su sesión, le recordamos que también podemos brindarle información a través de redes sociales, en Facebook como Locatel Ciudad de México y en Twitter como @locatel_mx o marcando al *0311 las 24 horas del día los 365 días del año, si desea realizar un reporte sobre servicios en la CDMX puede realizarlo por medio de https://311locatel.cdmx.gob.mx/ Le atendió JOSE GRANADOS. Hasta luego. #LAPALABRADELBOTON`;
+
+// Ahora la lista iniciará vacía y se llenará sola
+let listaHashtags = []; 
+
+
+// --- NUEVA FUNCIÓN: LEER LAS COLUMNAS DESDE APPS SCRIPT ---
+async function cargarHashtagsDesdeExcel() {
+    try {
+        const respuesta = await fetch(API_CONTEO_URL + '?action=leer', {
+            method: 'GET',
+            redirect: 'follow'
+        });
+        const datos = await respuesta.json();
+        
+        if (datos.status === "success" && datos.hashtags) {
+            listaHashtags = datos.hashtags;
+            renderHashtags();
+        } else {
+            console.error("Error desde Apps Script:", datos.mensaje);
+        }
+    } catch (error) {
+        console.error("Error de conexión al cargar hashtags:", error);
+    }
+}
+
+// 1. Abrir y Cerrar el menú lateral
+if (btnMenuDespedidas && sideMenuDespedidas) {
+    btnMenuDespedidas.addEventListener('click', () => {
+        sideMenuDespedidas.classList.add('open');
+        // Actualiza los botones cada vez que abres el menú
+        cargarHashtagsDesdeExcel(); 
+    });
+}
+if (closeMenuBtn) {
+    closeMenuBtn.addEventListener('click', () => {
+        sideMenuDespedidas.classList.remove('open');
+    });
+}
+
+// 2. Función principal: Crear los botones y manejar el clic
+function renderHashtags(filtro = "") {
+    hashtagButtonsContainer.innerHTML = "";
+    
+    const filtrados = listaHashtags.filter(h => h.toLowerCase().includes(filtro.toLowerCase()));
+    
+    if(filtrados.length === 0) {
+        hashtagButtonsContainer.innerHTML = `<p style="text-align:center; color: var(--text-muted); font-size:14px;">No se encontraron etiquetas.</p>`;
+        return;
+    }
+
+    filtrados.forEach(hashtag => {
+        const btn = document.createElement('button');
+        btn.className = 'hashtag-btn';
+        btn.innerHTML = `<span>${hashtag}</span> <span style="font-size: 14px; opacity: 0.7;">📋</span>`;
+        
+        btn.addEventListener('click', async () => {
+            // Leemos el estado del switch (Activo / Inactivo)
+            let estadoSeleccionado = document.querySelector('input[name="estadoDespedida"]:checked').value;
+            
+            // 🔥 REGLA ESTRICTA: Si es #INACTIVIDAD, ignoramos el menú y forzamos inactivo
+            if (hashtag === "#INACTIVIDAD") {
+                estadoSeleccionado = "inactivo";
+            }
+
+            // Seleccionamos el texto según el estado final dictado
+            let textoFinal = estadoSeleccionado === "activo" ? textoActivo : textoInactivo;
+            
+            // Reemplazamos el comodín por el hashtag clickeado
+            textoFinal = textoFinal.replace('#LAPALABRADELBOTON', hashtag);
+            
+            try {
+                // Copiamos al portapapeles
+                await navigator.clipboard.writeText(textoFinal);
+                
+                // Animación visual verde de copiado
+                btn.classList.add('copied');
+                btn.innerHTML = `<span>¡Copiado!</span> <span>✅</span>`;
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = `<span>${hashtag}</span> <span style="font-size: 14px; opacity: 0.7;">📋</span>`;
+                }, 1500);
+
+                // Mandamos el hashtag y el estado al Excel de fondo
+                // ... dentro de btn.addEventListener('click', async () => { ...
+                fetch(API_CONTEO_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 
+                        'action': 'guardar',
+                        'hashtag': hashtag,
+                        'estado': estadoSeleccionado
+                    })
+                }).then(res => res.json())
+                .then(data => console.log(`Respuesta de Sheets:`, data))
+                .catch(e => console.error("Error al registrar en Sheets:", e));
+
+            } catch (err) {
+                console.error('Error al copiar al portapapeles:', err);
+                alert("Hubo un problema al copiar el texto. Verifica los permisos.");
+            }
+        });
+        
+        hashtagButtonsContainer.appendChild(btn);
+    });
+}
+
+// 3. Conectar el buscador interno del menú
+if (searchHashtag) {
+    searchHashtag.addEventListener('input', (e) => {
+        renderHashtags(e.target.value.trim());
+    });
+}
+
+
+// ==========================================================
+// LÓGICA DEL TEMPORIZADOR (CONECTADO A SHEETS)
+// ==========================================================
+let timerInterval;
+let totalSeconds = 25 * 60; 
+let isTimerRunning = false;
+
+const inputTimer = document.getElementById('inputTimer');
+const timerDisplay = document.getElementById('timerDisplay');
+const btnPlayTimer = document.getElementById('btnPlayTimer');
+const btnPauseTimer = document.getElementById('btnPauseTimer');
+const btnResetTimer = document.getElementById('btnResetTimer');
+
+// Formatea los segundos a MM:SS
+function formatTime(seconds) {
+    const isNegative = seconds < 0;
+    const absSecs = Math.abs(seconds);
+    const m = Math.floor(absSecs / 60).toString().padStart(2, '0');
+    const s = (absSecs % 60).toString().padStart(2, '0');
+    return (isNegative ? "-" : "") + `${m}:${s}`;
+}
+
+// Actualiza vista
+function actualizarVista() {
+    timerDisplay.innerText = formatTime(totalSeconds);
+    timerDisplay.style.color = totalSeconds < 0 ? "#ef4444" : "var(--primary-color)";
+}
+
+// Función principal: Leer datos desde Sheets al entrar a la página
+async function sincronizarTemporizadorDesdeSheets() {
+    try {
+        timerDisplay.innerText = "Cargando...";
+        const respuesta = await fetch(API_CONTEO_URL2 + '?action=leerTiempo', {
+            method: 'GET',
+            redirect: 'follow'
+        });
+        const datos = await respuesta.json();
+
+        if (datos.status === "success") {
+            // Actualizar el input con el Tiempo Total de la Columna A
+            if (datos.tiempoTotal) {
+                inputTimer.value = datos.tiempoTotal;
+            }
+
+            // Si hay un registro previo hoy, extraemos el tiempo
+            if (datos.ultimoRegistro) {
+                // Busca el patrón "Quedan: MM:SS" o "Quedan: -MM:SS"
+                const match = datos.ultimoRegistro.match(/Quedan:\s*(-?\d+):(\d+)/);
+                if (match) {
+                    const signo = match[1].startsWith('-') ? -1 : 1;
+                    const m = parseInt(match[1].replace('-', ''), 10);
+                    const s = parseInt(match[2], 10);
+                    
+                    totalSeconds = signo * ((m * 60) + s);
+                }
+            } else {
+                totalSeconds = parseInt(inputTimer.value || 25) * 60;
+            }
+            actualizarVista();
+        }
+    } catch (error) {
+        console.error("Error al sincronizar el temporizador:", error);
+        timerDisplay.innerText = formatTime(totalSeconds);
+    }
+}
+
+// Iniciar Reloj
+btnPlayTimer.addEventListener('click', () => {
+    if (isTimerRunning) return;
+    
+    // Si la pantalla coincide con el input inicial, tomamos el valor del input
+    if (timerDisplay.innerText === formatTime(inputTimer.value * 60) && totalSeconds === parseInt(inputTimer.value)*60) {
+        totalSeconds = parseInt(inputTimer.value) * 60;
+    }
+    
+    inputTimer.disabled = true; 
+    isTimerRunning = true;
+    
+    timerInterval = setInterval(() => {
+        totalSeconds--;
+        actualizarVista();
+    }, 1000);
+});
+
+// Pausar y Guardar
+btnPauseTimer.addEventListener('click', () => {
+    if (!isTimerRunning) return;
+    
+    clearInterval(timerInterval);
+    isTimerRunning = false;
+    
+    const tiempoRestanteFormateado = formatTime(totalSeconds);
+    const horaActual = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const tiempoTotalEstablecido = inputTimer.value + " min";
+
+    btnPauseTimer.innerText = "⏳";
+    
+    fetch(API_CONTEO_URL2, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ 
+            'action': 'guardarTiempo',
+            'tiempoTotal': tiempoTotalEstablecido,
+            'tiempoRestante': tiempoRestanteFormateado,
+            'horaActual': horaActual
+        })
+    }).then(res => res.json())
+      .then(data => {
+          btnPauseTimer.innerText = "⏸";
+          if(data.status !== "success") alert("Error backend al guardar tiempo");
+      }).catch(e => {
+          console.error(e);
+          btnPauseTimer.innerText = "⏸";
+      });
+});
+
+// Reiniciar
+btnResetTimer.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    isTimerRunning = false;
+    inputTimer.disabled = false;
+    totalSeconds = parseInt(inputTimer.value) * 60;
+    actualizarVista();
+});
+
+// Modificar input manual
+inputTimer.addEventListener('input', () => {
+    if (!isTimerRunning) {
+        totalSeconds = parseInt(inputTimer.value || 0) * 60;
+        actualizarVista();
+    }
+});
+
+// Ejecutar sincronización al cargar la página (se puede añadir debajo de inicializarPestanas)
+sincronizarTemporizadorDesdeSheets();
+
+// 4. Cargamos todo por primera vez al entrar a la página
+cargarHashtagsDesdeExcel();
+
+
 // Iniciar aplicación
 window.onload = inicializarPestanas;

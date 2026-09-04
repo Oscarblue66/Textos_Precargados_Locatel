@@ -416,6 +416,9 @@ button.copy-btn.copied {
     background: var(--text-muted);
 }
 
+
+
+
 /* ==========================================================
    RESPONSIVE DESIGN (Efecto Zoom Dinámico)
    ========================================================== */
@@ -448,3 +451,235 @@ button.copy-btn.copied {
         font-size: 20px;
     }
 }
+
+
+/* ==========================================================
+   11. MENÚ LATERAL DE DESPEDIDAS (NUEVO)
+   ========================================================== */
+.side-menu {
+    position: fixed;
+    top: 0;
+    left: -350px; /* Oculto por defecto */
+    width: 320px;
+    height: 100vh;
+    background-color: var(--surface-color);
+    border-right: 1px solid var(--border-color);
+    box-shadow: 5px 0 25px rgba(0,0,0,0.5);
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.side-menu.open {
+    left: 0;
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.menu-header h3 {
+    margin: 0;
+    color: var(--primary-hover);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.close-menu-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 28px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    padding: 0;
+    line-height: 1;
+}
+
+.close-menu-btn:hover {
+    color: #ff5555;
+}
+
+.menu-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Toggle Activo/Inactivo */
+.toggle-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background: var(--input-bg);
+    padding: 5px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.toggle-label {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.toggle-label:has(input:checked) {
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+    box-shadow: 0 2px 8px rgba(189, 147, 249, 0.3);
+}
+
+.toggle-label input {
+    display: none; /* Oculta el circulito del radio */
+}
+
+/* Buscador interno */
+.search-box-menu input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+}
+
+.search-box-menu input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+/* Botones Hashtag */
+.hashtag-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hashtag-btn {
+    background-color: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Courier New', monospace;
+}
+
+.hashtag-btn:hover {
+    border-color: var(--primary-color);
+    background-color: var(--surface-hover);
+    transform: translateX(5px);
+}
+
+.hashtag-btn.copied {
+    background-color: var(--success-color);
+    color: var(--bg-color);
+    border-color: var(--success-color);
+    transform: scale(1.02);
+}
+
+/* Compatibilidad con Light Mode */
+body.light-mode .side-menu {
+    box-shadow: 5px 0 25px rgba(0,0,0,0.1);
+}
+body.light-mode .toggle-label:has(input:checked) {
+    background-color: var(--primary-color);
+    color: #ffffff;
+}
+body.light-mode .hashtag-btn.copied {
+    color: #ffffff;
+}
+
+
+/* ==========================================================
+   ESTILOS DEL TEMPORIZADOR
+   ========================================================== */
+.timer-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background-color: var(--input-bg);
+    padding: 12px 24px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    width: fit-content;
+    margin-bottom: 15px;
+}
+
+.timer-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.timer-inputs input {
+    width: 60px;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-main);
+    text-align: center;
+    font-family: inherit;
+    font-weight: 700;
+}
+
+.timer-display {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'Courier New', Courier, monospace;
+    color: var(--primary-color);
+    min-width: 100px;
+    text-align: center;
+    letter-spacing: 2px;
+}
+
+.timer-controls {
+    display: flex;
+    gap: 10px;
+}
+
+.timer-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: var(--surface-color);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+
+.timer-btn.play:hover { background: var(--success-color); color: white; border-color: var(--success-color); }
+.timer-btn.pause:hover { background: #f59e0b; color: white; border-color: #f59e0b; }
+.timer-btn.reset:hover { background: #ef4444; color: white; border-color: #ef4444; }
