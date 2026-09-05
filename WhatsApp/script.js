@@ -378,13 +378,13 @@ if (searchHashtag) {
     });
 }
 
-
 // ==========================================================
-// LÓGICA DEL TEMPORIZADOR (CONECTADO A SHEETS)
+// LÓGICA DEL TEMPORIZADOR (CONECTADO A SHEETS Y CON MILISEGUNDOS)
 // ==========================================================
 let timerInterval;
-let totalSeconds = 25 * 60; 
+let totalMilliseconds = 25 * 60 * 1000; 
 let isTimerRunning = false;
+let lastTickTime = 0; // Para calcular el desfase de tiempo real
 
 const inputTimer = document.getElementById('inputTimer');
 const timerDisplay = document.getElementById('timerDisplay');
@@ -392,19 +392,22 @@ const btnPlayTimer = document.getElementById('btnPlayTimer');
 const btnPauseTimer = document.getElementById('btnPauseTimer');
 const btnResetTimer = document.getElementById('btnResetTimer');
 
-// Formatea los segundos a MM:SS
-function formatTime(seconds) {
-    const isNegative = seconds < 0;
-    const absSecs = Math.abs(seconds);
-    const m = Math.floor(absSecs / 60).toString().padStart(2, '0');
-    const s = (absSecs % 60).toString().padStart(2, '0');
-    return (isNegative ? "-" : "") + `${m}:${s}`;
+// Formatea los milisegundos a MM:SS.ms (Ej. 24:50.85)
+function formatTime(msTotal) {
+    const isNegative = msTotal < 0;
+    const absMs = Math.abs(msTotal);
+    const m = Math.floor(absMs / 60000).toString().padStart(2, '0');
+    const s = Math.floor((absMs % 60000) / 1000).toString().padStart(2, '0');
+    // Usamos 2 dígitos para los milisegundos (centisegundos) para mayor fluidez visual
+    const ms = Math.floor((absMs % 1000) / 10).toString().padStart(2, '0'); 
+    
+    return (isNegative ? "-" : "") + `${m}:${s}.${ms}`;
 }
 
 // Actualiza vista
 function actualizarVista() {
-    timerDisplay.innerText = formatTime(totalSeconds);
-    timerDisplay.style.color = totalSeconds < 0 ? "#ef4444" : "var(--primary-color)";
+    timerDisplay.innerText = formatTime(totalMilliseconds);
+    timerDisplay.style.color = totalMilliseconds < 0 ? "#ef4444" : "var(--primary-color)";
 }
 
 // Función principal: Leer datos desde Sheets al entrar a la página
@@ -418,30 +421,31 @@ async function sincronizarTemporizadorDesdeSheets() {
         const datos = await respuesta.json();
 
         if (datos.status === "success") {
-            // Actualizar el input con el Tiempo Total de la Columna A
             if (datos.tiempoTotal) {
                 inputTimer.value = datos.tiempoTotal;
             }
 
-            // Si hay un registro previo hoy, extraemos el tiempo
             if (datos.ultimoRegistro) {
-                // Busca el patrón "Quedan: MM:SS" o "Quedan: -MM:SS"
-                const match = datos.ultimoRegistro.match(/Quedan:\s*(-?\d+):(\d+)/);
+                // Modificado para capturar el punto y los milisegundos (Ej. Quedan: 24:50.85)
+                const match = datos.ultimoRegistro.match(/Quedan:\s*(-?\d+):(\d+)(?:\.(\d+))?/);
                 if (match) {
                     const signo = match[1].startsWith('-') ? -1 : 1;
                     const m = parseInt(match[1].replace('-', ''), 10);
                     const s = parseInt(match[2], 10);
+                    // Si el registro viejo no tenía milisegundos, asume 00
+                    const msVisuales = match[3] ? match[3].padEnd(2, '0').substring(0, 2) : "00"; 
+                    const ms = parseInt(msVisuales, 10) * 10; 
                     
-                    totalSeconds = signo * ((m * 60) + s);
+                    totalMilliseconds = signo * ((m * 60000) + (s * 1000) + ms);
                 }
             } else {
-                totalSeconds = parseInt(inputTimer.value || 25) * 60;
+                totalMilliseconds = parseInt(inputTimer.value || 25) * 60000;
             }
             actualizarVista();
         }
     } catch (error) {
         console.error("Error al sincronizar el temporizador:", error);
-        timerDisplay.innerText = formatTime(totalSeconds);
+        timerDisplay.innerText = formatTime(totalMilliseconds);
     }
 }
 
@@ -449,18 +453,23 @@ async function sincronizarTemporizadorDesdeSheets() {
 btnPlayTimer.addEventListener('click', () => {
     if (isTimerRunning) return;
     
-    // Si la pantalla coincide con el input inicial, tomamos el valor del input
-    if (timerDisplay.innerText === formatTime(inputTimer.value * 60) && totalSeconds === parseInt(inputTimer.value)*60) {
-        totalSeconds = parseInt(inputTimer.value) * 60;
+    if (timerDisplay.innerText === formatTime(inputTimer.value * 60000) && totalMilliseconds === parseInt(inputTimer.value) * 60000) {
+        totalMilliseconds = parseInt(inputTimer.value) * 60000;
     }
     
     inputTimer.disabled = true; 
     isTimerRunning = true;
+    lastTickTime = Date.now(); // Guardamos el momento exacto de inicio
     
+    // El intervalo corre muy rápido (cada 10ms) para animar los milisegundos
     timerInterval = setInterval(() => {
-        totalSeconds--;
+        const now = Date.now();
+        const delta = now - lastTickTime; // Diferencia real de tiempo
+        totalMilliseconds -= delta;
+        lastTickTime = now;
+        
         actualizarVista();
-    }, 1000);
+    }, 10);
 });
 
 // Pausar y Guardar
@@ -470,7 +479,7 @@ btnPauseTimer.addEventListener('click', () => {
     clearInterval(timerInterval);
     isTimerRunning = false;
     
-    const tiempoRestanteFormateado = formatTime(totalSeconds);
+    const tiempoRestanteFormateado = formatTime(totalMilliseconds);
     const horaActual = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const tiempoTotalEstablecido = inputTimer.value + " min";
 
@@ -500,17 +509,18 @@ btnResetTimer.addEventListener('click', () => {
     clearInterval(timerInterval);
     isTimerRunning = false;
     inputTimer.disabled = false;
-    totalSeconds = parseInt(inputTimer.value) * 60;
+    totalMilliseconds = parseInt(inputTimer.value) * 60000;
     actualizarVista();
 });
 
 // Modificar input manual
 inputTimer.addEventListener('input', () => {
     if (!isTimerRunning) {
-        totalSeconds = parseInt(inputTimer.value || 0) * 60;
+        totalMilliseconds = parseInt(inputTimer.value || 0) * 60000;
         actualizarVista();
     }
 });
+
 
 // Ejecutar sincronización al cargar la página (se puede añadir debajo de inicializarPestanas)
 sincronizarTemporizadorDesdeSheets();

@@ -752,3 +752,38 @@ body.light-mode .hashtag-btn.copied {
         font-size: 22px;
     }
 }
+
+/* ==========================================================
+   COLORES DISTINTIVOS POR COLUMNA
+   ========================================================== */
+
+/* 1. TEMA (Violeta suave) */
+tbody td:nth-child(1) {
+    color: #d18bfa;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+/* 2. SUBTEMA (Naranja pastel) */
+tbody td:nth-child(2) {
+    color: #f1ff71;
+}
+
+/* 3. CATEGORÍA (Verde azulado / Teal) */
+tbody td:nth-child(3) {
+    color: #5eff7c;
+    font-style: italic;
+    font-size: 13px;
+}
+
+/* 4. TEXTO DE RESPUESTA (Blanco principal para máxima lectura) */
+tbody td:nth-child(4) {
+    color:#39edf0;
+}
+
+/* 5. HASHTAG (Azul vibrante - Refuerzo de tu estilo actual) */
+tbody td:nth-child(5) {
+    color: var(--primary-hover);
+    font-weight: 700;
+    font-family: 'ui-monospace', monospace;
+}
